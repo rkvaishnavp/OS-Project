@@ -1,7 +1,5 @@
 #include <stdio.h>
-
 #include <stdlib.h>
-
 #include <string.h>
 
 #define MAX_BURSTS 100
@@ -24,12 +22,14 @@ typedef struct process {
 
   int cpu_time_left;
   struct process * next;
-}
-Process;
+
+} Process;
+
+Process * queue = NULL;
 
 // Function to Print Queue
-void print_processes(Process * queue) {
-  Process * temp = queue;
+void print_processes(Process *Queue) {
+  Process* temp = Queue;
   while (temp != NULL) {
     printf("\nProcess Id : %d, Arrival Time : %d\n", temp -> pid, temp -> arrival_time);
     printf("CPU Bursts for process %d : ", temp -> pid);
@@ -44,24 +44,42 @@ void print_processes(Process * queue) {
     temp = temp -> next;
   }
 }
+
 // Function to add a new task to the task queue
 void add_task(Process ** queue, Process * new_task) {
+
+    /*
+
+        if (empty) assign in beginning
+
+        if (middle)
+        
+        if (tail)else assign in middle/end
+
+
+    */
+
   printf("\nINSIDE add_tasks\n");
-  if ( * queue == NULL || ( * queue) -> arrival_time > new_task -> arrival_time) {
-    new_task -> next = * queue;
-    * queue = new_task;
+
+  if ( *queue == NULL || ( * queue) -> arrival_time > new_task -> arrival_time) {
+
+    new_task -> next = *queue;
+    *queue = new_task;
+
   } else {
-    Process * current_task = * queue;
+    Process *current_task = *queue;
+
     while (current_task -> next != NULL && current_task -> next -> arrival_time < new_task -> arrival_time) {
       current_task = current_task -> next;
     }
+    
     new_task -> next = current_task -> next;
     current_task -> next = new_task;
   }
 }
 
 // Global variables
-Process * queue = NULL;
+
 int global_time = 0;
 int num_process = 0;
 int count = 0;
@@ -81,6 +99,7 @@ void read_tasks(const char * filename) {
   // Read the file line by line
   while (fgets(numbers, MAX_BURSTS * sizeof(int), file)) {
     Process * new_process = (Process * )(malloc(sizeof(Process)));
+
     new_process -> curr_cpu = 0;
     new_process -> curr_io = 0;
     new_process -> max_cpu = 0;
@@ -127,25 +146,25 @@ void read_tasks(const char * filename) {
 }
 
 void round_robin() {
+
   printf("\nINSIDE ROUND ROBIN\n");
+
+  printf("count = %d\n", count);  
+  printf("numoricess = %d\n", num_process);  
+  print_processes(queue);
+
   while (count < num_process) {
-    Process * temp = queue;
-    temp -> next = NULL;
-    printf("\n-----1-------\n");
-    print_processes(temp);
+    printf("============================================================");
+    printf("count = %d\n", count); 
+    Process* temp = queue;
+
+    
     if (queue -> next != NULL) {
       printf("\n-----2-------\n");
-
       queue = queue -> next;
     }
-    printf("\n-----3-------\n");
-
-    print_processes(queue);
-
-    printf("\n%d\n", count);
-
-    printf("\nINSIDE round_robin()\n");
-    printf("\n1\n");
+    
+    
 
     if (temp -> arrival_time > global_time) {
       printf("Idle from %d to %d\n", global_time, temp -> arrival_time);
@@ -211,6 +230,8 @@ void round_robin() {
     printf("\n5\n");
 
   }
+  printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+  printf("\ncount = %d\n", count);
 
 }
 

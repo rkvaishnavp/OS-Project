@@ -23,6 +23,8 @@ typedef struct process {
 
 // Function to add a new task to the task queue
 void add_task(Process **queue, Process *new_task) {
+    new_task->curr_cpu = 0;
+    new_task->curr_io = 0;
     printf("\nINSIDE add_tasks\n");
     if (*queue == NULL || (*queue)->arrival_time > new_task->arrival_time) {
         new_task->next = *queue;
@@ -47,7 +49,7 @@ int count = 0;
 // //for reading
 void read_tasks(const char* filename) {
     printf("\nINSIDE read_tasks\n");
-    FILE *file = fopen("tasks.txt", "r");
+    FILE *file = fopen(filename, "r");
     if (file == NULL) {
         perror("Error opening file");
         exit(EXIT_FAILURE);
@@ -144,30 +146,38 @@ void read_tasks(const char* filename) {
 
 void round_robin(){
     printf("\nINSIDE round_robin()\n");
- 
+    printf("\n1\n");
     if(queue->arrival_time > global_time){
         global_time = queue->arrival_time;
     }
+    printf("\n2\n");
 
     if(queue->cpu_burst[queue->curr_cpu] <= QUANTUM_TIME){
+    printf("\n3\n");
+        
         global_time += queue->cpu_burst[queue->curr_cpu];
+        printf("\n3.1\n");
         queue->arrival_time = global_time + queue->io_burst[queue -> curr_io];
-
+        printf("\n3.2\n");
         queue->curr_cpu ++;
+        printf("\n3.3\n");
         queue->curr_io ++;
+        printf("\n3.4\n");
        
 
         Process *tmp = queue;
         tmp->next = NULL;
 
         queue = queue->next; 
-
+        printf("\n3.5\n");
         if(queue->cpu_burst[queue->curr_cpu] != 0) {  
+            printf("\n3.6\n");
             printf("Process with pid  %d ends its %d th burst at t= %d\n",queue->pid,queue->curr_cpu, global_time);    
             add_task(&queue, tmp);
            }
 
         else{
+            printf("\n3.7\n");
             count++;
             printf("Process with pid %d ends at t= %d\n",queue->pid,global_time); 
 
@@ -177,33 +187,59 @@ void round_robin(){
         }
     }
     else{
+    printf("\n4\n");
+
         global_time += QUANTUM_TIME;
         queue->arrival_time = global_time;
-
+        printf("\n4.1\n");    
         queue->cpu_burst[queue->curr_cpu] -= QUANTUM_TIME;
+        printf("\n4.2\n");    
 
         Process *tmp = queue;
         tmp->next = NULL;
+        printf("\n4.3\n");    
 
         queue = queue->next;
+        printf("\n4.4\n");    
+        printf("\n%d\n", queue->curr_cpu);
+        if(queue->cpu_burst[queue->curr_cpu] != 0) {  
+        printf("\n4.5\n");    
 
-        if(queue->cpu_burst[queue->curr_cpu] != 0) {      
             add_task(&queue, tmp);
             tmp = NULL;
         }
     }
+    printf("\n5\n");
+
 }
 
-// Function to Print queue
-void print_process(Process *queue){
-    printf("Process with pid  %d ends its %d th burst at t= %d\n",queue->pid,queue->curr_cpu, global_time);
+// Function to Print Queue
+void print_processes(Process *queue){
+    Process* temp = queue;
+    while(temp!=NULL){
+        printf("\nProcess Id : %d, Arrival Time : %d\n", temp->pid, temp->arrival_time);
+        printf("CPU Bursts for process %d : ", temp->pid);
+        for(int i = 0; i<temp->curr_cpu; ++i){
+            printf("%d ", temp->cpu_burst[i]);
+        }
+        printf("\nIO Bursts for process %d : ", temp->pid);
+        for(int i = 0; i<temp->curr_io; ++i){
+            printf("%d ", temp->io_burst[i]);
+        }
+        printf("\n");
+        temp = temp->next;
+    }
 }
 
 
-int main() {
+int main(int argc, char *argv[]) {
+    if(argc!=2){
+        printf("Invalid arguments, run command in the format :\n%s filename.txt\n", argv[0]);
+        return 1;
+    }
     printf("\nINSIDE main\n");
-    read_tasks("tasks.txt");
-    print_process(queue);
+    read_tasks(argv[1]);
+    print_processes(queue);
     round_robin();
     // print_results();
     return 0;

@@ -3,7 +3,8 @@
 #include <linux/kernel.h>
 #include <linux/fs.h>
 #include <linux/uaccess.h>
-#include <string.h>
+#include <linux/string.h>
+// #include <stdio.h>
 
 #define DEVICE_NAME "brightness_control"
 #define CLASS_NAME "brightness"
@@ -23,32 +24,39 @@ static int brightness_value = 0;
 
 #define MAX_BRIGHTNESS 255
 #define MIN_BRIGHTNESS 2
+// #define FILE struct file
 
-int brightness_value;
+//int brightness_value;
 
-void set_brightness(){
+void set_brightness(void){
     
     int batt_capacity_2;
     char batt_status_2[12];
 
-    FILE *batt_status_1 = fopen(batt_status, "r");
-    FILE *batt_capacity_1 = fopen(batt_capacity, "r");
-    FILE *bright_percentage_1 = fopen(bright_percentage, "w");
-    
-    fscanf(batt_status_1,"%s",batt_status_2);
-    fscanf(batt_capacity_1,"%d",&batt_capacity_2);
+    struct file *batt_status_1 = filp_open(batt_status, O_RDONLY, 0); // O_RDONLY
+    struct file *batt_capacity_1 = filp_open(batt_capacity, O_RDONLY, 0);
+    struct file *bright_percentage_1 = filp_open(bright_percentage, O_WRONLY | O_CREAT, 0644);
+	
+    char buffer2[100];
+    int len2 = snprintf(buffer2, sizeof(buffer2), "%d", batt_capacity_2);
+    kernel_read(batt_status_1, batt_status_2, sizeof(batt_status_2) - 1, &batt_status_1->f_pos);
+    kernel_read(batt_capacity_1, buffer2, sizeof(buffer2) - 1 , &batt_capacity_1->f_pos);
 
     if (strcmp(batt_status, "Charging") == 0){
-        fprintf(bright_percentage_1, "%d",MAX_BRIGHTNESS);
+	char buffer[100];
+	int len = snprintf(buffer, sizeof(buffer), "%d", MAX_BRIGHTNESS);
+        kernel_write(bright_percentage_1, buffer, len, &bright_percentage_1->f_pos);
     }
     else{
+	char buffer[100];
         brightness_value = (batt_capacity_2 * (MAX_BRIGHTNESS - MIN_BRIGHTNESS) / 100 )+ MIN_BRIGHTNESS;
-        fprintf(bright_percentage_1,"%d",brightness_value);
+	int len = snprintf(buffer, sizeof(buffer), "%d", brightness_value);
+        kernel_write(bright_percentage_1, buffer, len, &bright_percentage_1->f_pos);
     }
 
-    fclose(batt_status_1);
-    fclose(batt_capacity_1);
-    fclose(bright_percentage_1);
+    filp_close(batt_status_1, NULL);
+    filp_close(batt_capacity_1, NULL);
+    filp_close(bright_percentage_1, NULL);
 }
 
 static int device_open(struct inode *inode, struct file *file)

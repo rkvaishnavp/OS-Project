@@ -1,0 +1,1 @@
+cmd_/home/ubuntu/OS-Project/device_driver/batt_to_bright/Module.symvers := sed 's/\.ko$$/\.o/' /home/ubuntu/OS-Project/device_driver/batt_to_bright/modules.order | scripts/mod/modpost -m -a  -o /home/ubuntu/OS-Project/device_driver/batt_to_bright/Module.symvers -e -i Module.symvers   -T -

@@ -1,0 +1,1 @@
+cmd_/home/ubuntu/OS-Project/device_driver/batt_to_bright/backlight_control.mod := { echo  /home/ubuntu/OS-Project/device_driver/batt_to_bright/backlight_control.o;  echo; } > /home/ubuntu/OS-Project/device_driver/batt_to_bright/backlight_control.mod

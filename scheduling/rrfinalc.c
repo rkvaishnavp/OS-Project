@@ -3,8 +3,12 @@
 #include <string.h>
 
 #define MAX_BURSTS 100
-#define MAX_PROCESS 10
 #define QUANTUM_TIME 4
+
+// Global variables
+int global_time = 0;
+int num_process = 0;
+int count = 0;
 
 // Struct to store information about each task
 typedef struct process {
@@ -14,17 +18,17 @@ typedef struct process {
   int cpu_burst[10];
   int io_burst[10];
 
+  int last_cpu_exit;
+
   int curr_cpu;
   int curr_io;
 
   int max_cpu;
   int max_io;
 
-  int cpu_time_left;
   struct process * next;
 
 } Process;
-
 Process * queue = NULL;
 
 // Function to Print Queue
@@ -48,18 +52,81 @@ void print_processes(Process *Queue) {
 // Function to add a new task to the task queue
 void add_task(Process ** queue, Process * new_task) {
 
-    /*
+  int flag = 0;
+  if ( *queue == NULL || ( * queue) -> arrival_time > new_task -> arrival_time) {
 
-        if (empty) assign in beginning
+    new_task -> next = *queue;
+    *queue = new_task;
 
-        if (middle)
+  } 
+  
+  else if((*queue) -> arrival_time == new_task -> arrival_time){
+
+        //this is the case when no execution has happened
+        // if((*queue)->last_cpu_exit == new_task->last_cpu_exit){
+        //   Process* temp_end = (*queue);
+        //   while(temp_end->next->arrival_time == new_task->arrival_time){
+        //     temp_end = temp_end->next;
+        //   }
+        //   new_task->next = temp_end->next;
+        //   temp_end->next = new_task;
+        // }
+
+
+        if((*queue)->last_cpu_exit <= new_task->last_cpu_exit){
+          new_task -> next = *queue;
+          *queue = new_task;
+        }
         
-        if (tail)else assign in middle/end
+  } 
+  
+  else {
+    Process *current_task = *queue;
+
+    while (current_task -> next != NULL && current_task -> next -> arrival_time < new_task -> arrival_time) {
+      current_task = current_task -> next;
+    }
+
+    if(current_task -> next == NULL ||current_task -> next -> arrival_time > new_task -> arrival_time){
+      new_task -> next = current_task -> next;
+      current_task -> next = new_task;
+    }
+    else{
+        while(current_task->next->arrival_time == new_task->arrival_time){
+          if (current_task->next->last_cpu_exit >= new_task->last_cpu_exit){
+
+            if(current_task->next == NULL){
+              flag = 1;
+              break;
+            }
+            else{
+            current_task = current_task -> next;
+            }
+            
+          }
+
+          else{
+            new_task -> next = current_task -> next;
+            current_task -> next = new_task;
+            break;
+          }
+        }
+        if(flag==1){
+          new_task -> next = current_task -> next;
+          current_task -> next = new_task;
+        }
 
 
-    */
+    }
+    
+    
 
-  printf("\nINSIDE add_tasks\n");
+    
+    
+  }
+}
+
+void add_task_in_read(Process ** queue, Process * new_task) {
 
   if ( *queue == NULL || ( * queue) -> arrival_time > new_task -> arrival_time) {
 
@@ -69,7 +136,7 @@ void add_task(Process ** queue, Process * new_task) {
   } else {
     Process *current_task = *queue;
 
-    while (current_task -> next != NULL && current_task -> next -> arrival_time < new_task -> arrival_time) {
+    while (current_task -> next != NULL && current_task -> next -> arrival_time <= new_task -> arrival_time) {
       current_task = current_task -> next;
     }
     
@@ -78,89 +145,89 @@ void add_task(Process ** queue, Process * new_task) {
   }
 }
 
-// Global variables
 
-int global_time = 0;
-int num_process = 0;
-int count = 0;
-
-// //for reading
+//for reading
 void read_tasks(const char * filename) {
-  printf("\nINSIDE read_tasks\n");
   FILE * file = fopen(filename, "r");
   if (file == NULL) {
     perror("Error opening file");
     exit(EXIT_FAILURE);
   }
+
   char numbers[MAX_BURSTS];
-  int flag, i, j, num_lines = 0;
+  int token_number;
   // Read the tasks from the file and add them to the task queue
 
   // Read the file line by line
   while (fgets(numbers, MAX_BURSTS * sizeof(int), file)) {
     Process * new_process = (Process * )(malloc(sizeof(Process)));
 
+    new_process->last_cpu_exit = 0;
     new_process -> curr_cpu = 0;
     new_process -> curr_io = 0;
     new_process -> max_cpu = 0;
     new_process -> max_io = 0;
     new_process -> next = NULL;
+
     // Split the line into numbers
     char * token = strtok(numbers, " ");
-    j = 0;
-    flag = 1;
+    token_number = 1;
 
     while (token != NULL) {
       // Convert the token to an integer and store it in the array
-      if (flag == 1) {
+
+      if (token_number == 1) {
         new_process -> pid = atoi(token);
-        flag++;
-      } else if (flag == 2) {
+        token_number++;
+      } 
+      
+      else if (token_number == 2) {
         new_process -> arrival_time = atoi(token);
-        flag++;
-      } else {
-        if (flag % 2 != 0) {
-          new_process -> cpu_burst[new_process -> curr_cpu] = atoi(token);
-          new_process -> curr_cpu++;
-          flag++;
-        } else {
-          new_process -> io_burst[new_process -> curr_io] = atoi(token);
-          new_process -> curr_io++;
-          flag++;
-        }
+        token_number++;
+      } 
+      
+      else {
+          if (token_number % 2 != 0) {
+            int worst_time = atoi(token);
+            //random number between 60% and 100% of the worst case execution time
+            int actual_time = (rand() % 41 + 60) * worst_time / 100;
+            new_process -> cpu_burst[new_process -> curr_cpu] = actual_time;
+            new_process -> curr_cpu++;
+            token_number++;
+          } 
+          
+          else {
+            new_process -> io_burst[new_process -> curr_io] = atoi(token);
+            new_process -> curr_io++;
+            token_number++;
+          }
       }
-      // arrays[num_lines][j] = atoi(token);
-      j++;
+      
       token = strtok(NULL, " ");
     }
+
     num_process++;
+
     new_process -> max_cpu = new_process -> curr_cpu;
     new_process -> max_io = new_process -> curr_io;
 
     new_process -> curr_cpu = 0;
     new_process -> curr_io = 0;
 
-    add_task( & queue, new_process);
+    add_task_in_read( & queue, new_process);
 
   }
 }
 
 void round_robin() {
 
-  printf("\nINSIDE ROUND ROBIN\n");
-
-  printf("count = %d\n", count);  
-  printf("numoricess = %d\n", num_process);  
-  print_processes(queue);
+  printf("\nStarting Round Robin Scheduling\n\n");
 
   while (count < num_process) {
-    printf("============================================================");
-    printf("count = %d\n", count); 
     Process* temp = queue;
 
     
     if (queue -> next != NULL) {
-      printf("\n-----2-------\n");
       queue = queue -> next;
     }
     
@@ -172,31 +239,31 @@ void round_robin() {
     }
 
     if (temp -> cpu_burst[temp -> curr_cpu] <= QUANTUM_TIME) {
-      printf("\n3\n");
-
+      
+      int original_arrival = global_time;
       global_time += temp -> cpu_burst[temp -> curr_cpu];
-      printf("\n3.1\n");
-      printf("\n%d|n", temp -> max_io);
+      
+      temp->last_cpu_exit = global_time;
+      
 
       if (temp -> curr_io <= temp -> max_io) {
         temp -> arrival_time = global_time + temp -> io_burst[temp -> curr_io];
-        printf("\n3.2\n");
+        
       }
 
-      temp -> curr_cpu++;
-      printf("\n3.3\n");
+      temp -> curr_cpu++;   
 
       temp -> curr_io++;
-      printf("\n3.4\n");
 
-      printf("\n3.5\n");
-
-      if (temp -> cpu_burst[temp -> curr_cpu] != 0) {
-        printf("\n3.6\n");
-        printf("Process with pid  %d ends its %d th burst at t= %d\n", temp -> pid, temp -> curr_cpu, global_time);
+      //if the process doesnt end here
+      if (temp -> cpu_burst[temp -> curr_cpu] != 0) {        
+        printf("Process with pid  %d executes from %d to %d\n", temp -> pid, original_arrival, global_time);
+        printf("Process with pid  %d goes for IO from %d to %d\n", temp -> pid, global_time, temp->arrival_time);
         add_task( & queue, temp);
-      } else {
-        printf("\n3.7\n");
+      } 
+      
+      //if the process is ending with the current cpu burst
+      else {        
         count++;
         printf("Process with pid %d ends at t= %d\n", temp -> pid, global_time);
 
@@ -204,34 +271,31 @@ void round_robin() {
           printf("End of schedule at time = %d\n", global_time);
         }
       }
-    } else {
-      printf("\n4\n");
-
+    } 
+    
+    else {
+      
+      int original_arrival = global_time;
       global_time += QUANTUM_TIME;
+      temp->last_cpu_exit = global_time;
       temp -> arrival_time = global_time;
-
-      printf("\n4.1\n");
-
+      printf("Process with pid  %d executes from %d to %d\n", temp -> pid, original_arrival, global_time);
+      
       temp -> cpu_burst[temp -> curr_cpu] -= QUANTUM_TIME;
-      printf("\n4.2\n");
+      
 
       Process * tmp = temp;
       tmp -> next = NULL;
-      printf("\n4.3\n");
-
-      printf("\n4.4\n");
-      printf("\n%d\n", temp -> curr_io);
-      printf("\n%d\n", temp -> curr_cpu);
-
+      
       add_task( & queue, tmp);
       tmp = NULL;
 
     }
-    printf("\n5\n");
+    
 
   }
-  printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-  printf("\ncount = %d\n", count);
+  
+  
 
 }
 
@@ -241,9 +305,13 @@ int main(int argc, char * argv[]) {
     return 1;
   }
   printf("\nINSIDE main\n");
+
   read_tasks(argv[1]);
+
+  printf("\nThe original queue before scheduling starts\n");
   print_processes(queue);
+
   round_robin();
-  // print_results();
+ 
   return 0;
 }

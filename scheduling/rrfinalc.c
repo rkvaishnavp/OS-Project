@@ -93,7 +93,7 @@ void read_tasks(const char * filename) {
     exit(EXIT_FAILURE);
   }
   char numbers[MAX_BURSTS];
-  int flag, i, j, num_lines = 0;
+  int flag;
   // Read the tasks from the file and add them to the task queue
 
   // Read the file line by line
@@ -107,7 +107,6 @@ void read_tasks(const char * filename) {
     new_process -> next = NULL;
     // Split the line into numbers
     char * token = strtok(numbers, " ");
-    j = 0;
     flag = 1;
 
     while (token != NULL) {
@@ -129,8 +128,7 @@ void read_tasks(const char * filename) {
           flag++;
         }
       }
-      // arrays[num_lines][j] = atoi(token);
-      j++;
+      
       token = strtok(NULL, " ");
     }
     num_process++;
@@ -149,18 +147,15 @@ void round_robin() {
 
   printf("\nINSIDE ROUND ROBIN\n");
 
-  printf("count = %d\n", count);  
-  printf("numoricess = %d\n", num_process);  
-  print_processes(queue);
+//   printf("count = %d\n", count);  
+//   printf("numoricess = %d\n", num_process);  
+//   print_processes(queue);
 
   while (count < num_process) {
-    printf("============================================================");
-    printf("count = %d\n", count); 
     Process* temp = queue;
 
     
     if (queue -> next != NULL) {
-      printf("\n-----2-------\n");
       queue = queue -> next;
     }
     
@@ -172,31 +167,31 @@ void round_robin() {
     }
 
     if (temp -> cpu_burst[temp -> curr_cpu] <= QUANTUM_TIME) {
-      printf("\n3\n");
+      
 
       global_time += temp -> cpu_burst[temp -> curr_cpu];
-      printf("\n3.1\n");
-      printf("\n%d|n", temp -> max_io);
+      
+      
 
       if (temp -> curr_io <= temp -> max_io) {
         temp -> arrival_time = global_time + temp -> io_burst[temp -> curr_io];
-        printf("\n3.2\n");
+        
       }
 
       temp -> curr_cpu++;
-      printf("\n3.3\n");
+      
 
       temp -> curr_io++;
-      printf("\n3.4\n");
+      
 
-      printf("\n3.5\n");
+      
 
       if (temp -> cpu_burst[temp -> curr_cpu] != 0) {
-        printf("\n3.6\n");
+        
         printf("Process with pid  %d ends its %d th burst at t= %d\n", temp -> pid, temp -> curr_cpu, global_time);
         add_task( & queue, temp);
       } else {
-        printf("\n3.7\n");
+        
         count++;
         printf("Process with pid %d ends at t= %d\n", temp -> pid, global_time);
 
@@ -205,33 +200,33 @@ void round_robin() {
         }
       }
     } else {
-      printf("\n4\n");
+      
 
       global_time += QUANTUM_TIME;
       temp -> arrival_time = global_time;
 
-      printf("\n4.1\n");
+      
 
       temp -> cpu_burst[temp -> curr_cpu] -= QUANTUM_TIME;
-      printf("\n4.2\n");
+      
 
       Process * tmp = temp;
       tmp -> next = NULL;
-      printf("\n4.3\n");
+      
 
-      printf("\n4.4\n");
-      printf("\n%d\n", temp -> curr_io);
-      printf("\n%d\n", temp -> curr_cpu);
+      
+      
+      
 
       add_task( & queue, tmp);
       tmp = NULL;
 
     }
-    printf("\n5\n");
+    
 
   }
-  printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-  printf("\ncount = %d\n", count);
+  
+  
 
 }
 

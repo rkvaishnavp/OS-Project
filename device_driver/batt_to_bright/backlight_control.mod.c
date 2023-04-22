@@ -37,8 +37,8 @@ __used __section("__versions") = {
 	{ 0xd0da656b, "__stack_chk_fail" },
 	{ 0x9e2fb826, "filp_close" },
 	{ 0x9fb74541, "kernel_write" },
-	{ 0xa374213c, "kernel_read" },
 	{ 0x656e4a6e, "snprintf" },
+	{ 0xa374213c, "kernel_read" },
 	{ 0xa0c4c91b, "filp_open" },
 	{ 0x5b8239ca, "__x86_return_thunk" },
 	{ 0x92997ed8, "_printk" },
@@ -48,4 +48,4 @@ __used __section("__versions") = {
 MODULE_INFO(depends, "");
 
 
-MODULE_INFO(srcversion, "F2E9CA50436FA8466C405FF");
+MODULE_INFO(srcversion, "E0F785ECBAF51A6B184B089");

@@ -1,1 +1,1 @@
-cmd_/home/ubuntu/OS-Project/device_driver/batt_to_bright/modules.order := {   echo /home/ubuntu/OS-Project/device_driver/batt_to_bright/backlight_control.ko; :; } | awk '!x[$$0]++' - > /home/ubuntu/OS-Project/device_driver/batt_to_bright/modules.order
+cmd_/home/rkvp/Desktop/suraj/OS-Project/device_driver/batt_to_bright/modules.order := {   echo /home/rkvp/Desktop/suraj/OS-Project/device_driver/batt_to_bright/backlight_control.ko; :; } | awk '!x[$$0]++' - > /home/rkvp/Desktop/suraj/OS-Project/device_driver/batt_to_bright/modules.order

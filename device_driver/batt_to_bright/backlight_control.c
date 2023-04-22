@@ -4,6 +4,7 @@
 #include <linux/fs.h>
 #include <linux/uaccess.h>
 #include <linux/string.h>
+
 // #include <stdio.h>
 
 #define DEVICE_NAME "brightness_control"
@@ -28,6 +29,15 @@ static int brightness_value = 0;
 
 //int brightness_value;
 
+int ATOI(char buff[]){
+
+    int i, result = 0;
+    for (i = 0; buff[i] != '\0'; i++) {
+        result = result * 10 + (buff[i] - '0');
+    }
+    return result;
+}
+
 void set_brightness(void){
     
     int batt_capacity_2;
@@ -37,10 +47,13 @@ void set_brightness(void){
     struct file *batt_capacity_1 = filp_open(batt_capacity, O_RDONLY, 0);
     struct file *bright_percentage_1 = filp_open(bright_percentage, O_WRONLY | O_CREAT, 0644);
 	
-    char buffer2[100];
+    char buffer2[3];
+    kernel_read(batt_capacity_1, buffer2, sizeof(buffer2),&batt_capacity_1->f_pos);
+
     int len2 = snprintf(buffer2, sizeof(buffer2), "%d", batt_capacity_2);
     kernel_read(batt_status_1, batt_status_2, sizeof(batt_status_2) - 1, &batt_status_1->f_pos);
-    kernel_read(batt_capacity_1, buffer2, sizeof(buffer2) - 1 , &batt_capacity_1->f_pos);
+
+    batt_capacity_2 = ATOI(buffer2);
 
     if (strcmp(batt_status, "Charging") == 0){
 	char buffer[100];
@@ -64,7 +77,6 @@ static int device_open(struct inode *inode, struct file *file)
     printk(KERN_INFO "Device opened\n");
     return 0;
 }
-
 static int device_release(struct inode *inode, struct file *file)
 {
     printk(KERN_INFO "Device released\n");

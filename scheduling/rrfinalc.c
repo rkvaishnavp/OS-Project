@@ -59,8 +59,7 @@ void add_task(Process ** queue, Process * new_task) {
 
     */
 
-  printf("\nINSIDE add_tasks\n");
-
+ 
   if ( *queue == NULL || ( * queue) -> arrival_time > new_task -> arrival_time) {
 
     new_task -> next = *queue;
@@ -145,11 +144,7 @@ void read_tasks(const char * filename) {
 
 void round_robin() {
 
-  printf("\nINSIDE ROUND ROBIN\n");
-
-//   printf("count = %d\n", count);  
-//   printf("numoricess = %d\n", num_process);  
-//   print_processes(queue);
+  printf("\nLets see the Schedule\n");
 
   while (count < num_process) {
     Process* temp = queue;
@@ -168,7 +163,7 @@ void round_robin() {
 
     if (temp -> cpu_burst[temp -> curr_cpu] <= QUANTUM_TIME) {
       
-
+      int original_arrival = global_time;
       global_time += temp -> cpu_burst[temp -> curr_cpu];
       
       
@@ -178,8 +173,7 @@ void round_robin() {
         
       }
 
-      temp -> curr_cpu++;
-      
+      temp -> curr_cpu++;   
 
       temp -> curr_io++;
       
@@ -188,7 +182,8 @@ void round_robin() {
 
       if (temp -> cpu_burst[temp -> curr_cpu] != 0) {
         
-        printf("Process with pid  %d ends its %d th burst at t= %d\n", temp -> pid, temp -> curr_cpu, global_time);
+        printf("Process with pid  %d executes from %d to %d\n", temp -> pid, original_arrival, global_time);
+        printf("Process with pid  %d goes for IO from %d to %d\n", temp -> pid, global_time, temp->arrival_time);
         add_task( & queue, temp);
       } else {
         
@@ -201,9 +196,10 @@ void round_robin() {
       }
     } else {
       
-
+      int original_arrival = global_time;
       global_time += QUANTUM_TIME;
       temp -> arrival_time = global_time;
+      printf("Process with pid  %d executes from %d to %d\n", temp -> pid, original_arrival, global_time);
 
       
 

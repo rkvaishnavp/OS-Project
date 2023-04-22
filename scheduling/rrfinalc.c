@@ -62,17 +62,6 @@ void add_task(Process ** queue, Process * new_task) {
   
   else if((*queue) -> arrival_time == new_task -> arrival_time){
 
-        //this is the case when no execution has happened
-        // if((*queue)->last_cpu_exit == new_task->last_cpu_exit){
-        //   Process* temp_end = (*queue);
-        //   while(temp_end->next->arrival_time == new_task->arrival_time){
-        //     temp_end = temp_end->next;
-        //   }
-        //   new_task->next = temp_end->next;
-        //   temp_end->next = new_task;
-        // }
-
-
         if((*queue)->last_cpu_exit <= new_task->last_cpu_exit){
           new_task -> next = *queue;
           *queue = new_task;
@@ -91,6 +80,7 @@ void add_task(Process ** queue, Process * new_task) {
       new_task -> next = current_task -> next;
       current_task -> next = new_task;
     }
+
     else{
         while(current_task->next->arrival_time == new_task->arrival_time){
           if (current_task->next->last_cpu_exit >= new_task->last_cpu_exit){
